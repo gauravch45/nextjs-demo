@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+    environment{
+        SONAR_HOME = tool "SONAR-SERVER"
+        Image_With_Tag = "anubislord2109/nextjs-demo:v2"
+    }
+
+    stages {
+        stage("Cloning") {
+            steps {
+                git branch: 'main', changelog: false, poll: false, url: 'https://github.com/gauravch45/nextjs-demo.git'
+                echo 'Clone Successfull'
+            }
+        }
+        
+        stage("Trivy Scans"){
+            steps {
+                sh "trivy fs ."
+                echo "Trivy Scan Successfull"
+            }
+        }
+        
+        stage("SonarQube Scans"){
+            steps {
+                withSonarQubeEnv('SONAR-SERVER'){
+                    sh "$SONAR_HOME/bin/sonar-scanner -Dsonar.project=nextjs-demo -Dsonar.projectKey=nextjs-demo"
+                }
+            }
+        }
+        
+        stage("Building") {
+            steps {
+                sh "docker build -t $Image_With_Tag ."
+                echo "Building Successfull"
+            }
+        }
+        
+        stage("Pushing") {
+            steps {
+                echo "Logging in to Docker Hub"
+                withCredentials([usernamePassword(
+                    credentialsId: 'Jenkins-docker',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                    )]){
+                        sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
+                        echo "Pushing docker image"
+                        sh "docker push $Image_With_Tag"
+                    }
+            }
+        }
+        
+        stage("Clean-up") {
+            steps {
+                echo "List of available docker images"
+                sh"docker images"
+                sh "docker image prune -af"
+                echo "Cleaning of the images successfull"
+            }
+        }
+    }
+}
