@@ -4,7 +4,7 @@ metadata:
   name: nextjs-app
 spec:
   replicas: 1
-  selectors:
+  selector:
     matchlabels:
       app: nextjs-app
   template:
