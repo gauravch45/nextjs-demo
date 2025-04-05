@@ -3,6 +3,7 @@ pipeline {
     environment{
         SONAR_HOME = tool "SONAR-SERVER"
         Image_With_Tag = "anubislord2109/nextjs-demo:v2"
+        SNYK_TOKEN = credentials('jenkins-snyk')
     }
 
     stages {
@@ -33,6 +34,17 @@ pipeline {
                 sh "docker build -t $Image_With_Tag ."
                 echo "Building Successfull"
             }
+        }
+
+        stage('Snyk Test') {
+          steps {
+                echo 'Testing...'
+                snykSecurity(
+                  snykInstallation: 'snyk@latest',
+                  snykTokenId: '',
+                  // place other parameters here
+                )
+           }
         }
         
         stage("Pushing") {
