@@ -1,0 +1,19 @@
+appVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextjs-app
+spec:
+  replicas: 1
+  selectors:
+    matchlabels:
+      app: nextjs-app
+  template:
+    metadata:
+      labels:
+        app: nextjs-app
+    spec:
+      containers:
+        - name: nextjs-cont
+          image: anubislord2109/nextjs-demo:v2
+          ports:
+            - containerPort: 3000
